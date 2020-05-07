@@ -13,6 +13,11 @@ import { Note } from "@/game/comm/types/general";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { EventBus } from "../../event-bus";
+import {CircularToken} from "@/game/shapes/circulartoken";
+import {getUnitDistance, l2g} from "@/game/units";
+import {LocalPoint} from "@/game/geom";
+import {gameSettingsStore} from "@/game/settings";
+import {InvalidationMode, SyncMode} from "@/core/comm/types";
 
 @Component({
     components: {
@@ -90,6 +95,19 @@ export default class MenuBar extends Vue {
             return "";
         }
     }
+
+    openFile(event: { target: HTMLInputElement }): void {
+        const input = event.target
+        const layer = layerManager.getLayer(layerManager.floor!.name);
+        const fr = new FileReader();
+        fr.onload = (e) => {
+            console.log(fr.result);
+        }
+        console.log(event);
+        fr.readAsText(input.files[0]);
+
+        if (layer === undefined) return;
+    }
 }
 </script>
 
@@ -155,6 +173,7 @@ export default class MenuBar extends Vue {
                     <div><input id="invertAlt" type="checkbox" v-model="invertAlt" /></div>
                 </div>
             </div>
+            <input type="file" @input="openFile">
         </div>
         <router-link
             to="/dashboard"

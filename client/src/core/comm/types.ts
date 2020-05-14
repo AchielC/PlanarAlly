@@ -22,6 +22,6 @@ export enum SyncMode {
 
 export enum InvalidationMode {
     NO,
-    NORMAL,
-    WITH_LIGHT,
+    NORMAL, // repaint of the screen without recalculating lighting
+    WITH_LIGHT, // repaint of the screen with recalculating lighting
 }

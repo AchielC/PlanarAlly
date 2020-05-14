@@ -13,11 +13,13 @@ import { Note } from "@/game/comm/types/general";
 import { layerManager } from "@/game/layers/manager";
 import { gameStore } from "@/game/store";
 import { EventBus } from "../../event-bus";
-import {CircularToken} from "@/game/shapes/circulartoken";
-import {getUnitDistance, l2g} from "@/game/units";
-import {LocalPoint} from "@/game/geom";
-import {gameSettingsStore} from "@/game/settings";
-import {InvalidationMode, SyncMode} from "@/core/comm/types";
+import { CircularToken } from "@/game/shapes/circulartoken";
+import { getUnitDistance, l2g } from "@/game/units";
+import { GlobalPoint, LocalPoint, Vector } from "@/game/geom";
+import { gameSettingsStore } from "@/game/settings";
+import { InvalidationMode, SyncMode } from "@/core/comm/types";
+import { socket } from "@/assetManager/socket";
+import { Polygon } from "@/game/shapes/polygon";
 
 @Component({
     components: {
@@ -97,15 +99,93 @@ export default class MenuBar extends Vue {
     }
 
     openFile(event: { target: HTMLInputElement }): void {
-        const input = event.target
-        const layer = layerManager.getLayer(layerManager.floor!.name);
-        const fr = new FileReader();
-        fr.onload = (e) => {
-            console.log(fr.result);
-        }
-        console.log(event);
-        fr.readAsText(input.files[0]);
+        const input = event.target;
 
+        const fillColour = "rgba(0, 0, 0, 1)";
+        const borderColour = "rgba(0, 0, 0, 1)";
+        if (input.files == null || input.files.length == 0) {
+            return;
+        }
+        const layer = layerManager.getLayer(layerManager.floor!.name, "fow");
+        const fr = new FileReader();
+        fr.onload = _e => {
+            if (fr.result == null) {
+                return;
+            }
+            const dp = new DOMParser();
+            const doc: XMLDocument = dp.parseFromString(fr.result, "image/svg+xml");
+            console.log(doc);
+            for (const svgChild of doc.getElementsByTagNameNS("http://www.w3.org/2000/svg", "svg")) {
+                console.log(svgChild);
+                for (const pathChild of svgChild.getElementsByTagNameNS("http://www.w3.org/2000/svg", "path")) {
+                    let currentLocation = new GlobalPoint(0, 0);
+                    console.log(pathChild);
+                    const a = (<SVGPathElement>pathChild).pathSegList;
+                    const points: GlobalPoint[] = [];
+                    for (const seg of a) {
+                        switch (seg.pathSegType) {
+                            case 1: {
+                                //ClosePath
+                                currentLocation = points[0];
+                                break;
+                            }
+                            case 2: {
+                                //MoveToAbs
+                                currentLocation = new GlobalPoint(seg.x, seg.y);
+                                break;
+                            }
+                            case 3: {
+                                //MoveToRel
+                                currentLocation = currentLocation.add(new Vector(seg.x, seg.y));
+                                break;
+                            }
+                            case 4: {
+                                //LineToAbs
+                                currentLocation = new GlobalPoint(seg.x, seg.y);
+                                break;
+                            }
+                            case 5: {
+                                //LineToRel
+                                const move = new Vector(seg.x, seg.y);
+                                currentLocation = currentLocation.add(move);
+                                break;
+                            }
+                            case 12: {
+                                //LineToHorizontalAbs
+                                currentLocation = new GlobalPoint(seg.x, currentLocation.y);
+                                break;
+                            }
+                            case 13: {
+                                // LineToHorizontalRel
+                                currentLocation = currentLocation.add(new Vector(seg.x, 0));
+                                break;
+                            }
+                            case 14: {
+                                // LineToVerticalAbs
+                                currentLocation = new GlobalPoint(currentLocation.x, seg.y);
+                                break;
+                            }
+                            case 15: {
+                                // LineToVerticalRel
+                                currentLocation = currentLocation.add(new Vector(0, seg.y));
+                                break;
+                            }
+                            default: {
+                                //statements;
+                                break;
+                            }
+                        }
+                        points.push(currentLocation.clone());
+                    }
+
+                    console.log(points);
+                    const shape = new Polygon(points[0], points.slice(1), undefined, borderColour, 10, true);
+                    layer?.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
+                    console.log(shape);
+                }
+            }
+        };
+        fr.readAsText(input.files[0]);
         if (layer === undefined) return;
     }
 }
@@ -173,7 +253,7 @@ export default class MenuBar extends Vue {
                     <div><input id="invertAlt" type="checkbox" v-model="invertAlt" /></div>
                 </div>
             </div>
-            <input type="file" @input="openFile">
+            <input type="file" @input="openFile" />
         </div>
         <router-link
             to="/dashboard"

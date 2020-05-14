@@ -4,6 +4,8 @@ import Component from "vue-class-component";
 
 import { mapState } from "vuex";
 
+import SVGPathElement from "pathseg";
+
 import ColorPicker from "@/core/components/colorpicker.vue";
 import Game from "@/game/game.vue";
 import AssetNode from "@/game/ui/menu/asset_node.vue";
@@ -73,6 +75,7 @@ export default class MenuBar extends Vue {
         gameStore.newNote({ note, sync: true });
         this.openNote(note);
     }
+
     openNote(note: Note): void {
         (<Game>this.$parent.$parent).$refs.note.open(note);
     }
@@ -100,26 +103,21 @@ export default class MenuBar extends Vue {
 
     openFile(event: { target: HTMLInputElement }): void {
         const input = event.target;
-
-        const fillColour = "rgba(0, 0, 0, 1)";
-        const borderColour = "rgba(0, 0, 0, 1)";
+        const borderColour = "rgba(255, 0, 0, 1)";
         if (input.files == null || input.files.length == 0) {
             return;
         }
         const layer = layerManager.getLayer(layerManager.floor!.name, "fow");
         const fr = new FileReader();
-        fr.onload = _e => {
+        fr.onloadend = _e => {
             if (fr.result == null) {
                 return;
             }
             const dp = new DOMParser();
-            const doc: XMLDocument = dp.parseFromString(fr.result, "image/svg+xml");
-            console.log(doc);
+            const doc: XMLDocument = dp.parseFromString(<string>fr.result, "image/svg+xml");
             for (const svgChild of doc.getElementsByTagNameNS("http://www.w3.org/2000/svg", "svg")) {
-                console.log(svgChild);
                 for (const pathChild of svgChild.getElementsByTagNameNS("http://www.w3.org/2000/svg", "path")) {
                     let currentLocation = new GlobalPoint(0, 0);
-                    console.log(pathChild);
                     const a = (<SVGPathElement>pathChild).pathSegList;
                     const points: GlobalPoint[] = [];
                     for (const seg of a) {
@@ -146,8 +144,7 @@ export default class MenuBar extends Vue {
                             }
                             case 5: {
                                 //LineToRel
-                                const move = new Vector(seg.x, seg.y);
-                                currentLocation = currentLocation.add(move);
+                                currentLocation = currentLocation.add(new Vector(seg.x, seg.y));
                                 break;
                             }
                             case 12: {
@@ -171,17 +168,19 @@ export default class MenuBar extends Vue {
                                 break;
                             }
                             default: {
-                                //statements;
+                                //throw error;
+                                console.warn("Path contains unsupported segment: " + seg.pathSegType);
                                 break;
                             }
                         }
                         points.push(currentLocation.clone());
                     }
 
-                    console.log(points);
                     const shape = new Polygon(points[0], points.slice(1), undefined, borderColour, 10, true);
+                    shape.addOwner({ user: gameStore.username, editAccess: true, visionAccess: true }, false);
+                    shape.movementObstruction = true;
+                    shape.visionObstruction = true;
                     layer?.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
-                    console.log(shape);
                 }
             }
         };

@@ -119,7 +119,6 @@ export default class MenuBar extends Vue {
                 for (const pathChild of svgChild.getElementsByTagNameNS("http://www.w3.org/2000/svg", "path")) {
                     let currentLocation = new GlobalPoint(0, 0);
                     const pathData = (<SVGPathElement>pathChild).getPathData();
-                    console.log(pathData);
                     const points: GlobalPoint[] = [];
                     for (const seg of pathData) {
                         switch (seg.type) {

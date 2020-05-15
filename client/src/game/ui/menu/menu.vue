@@ -4,7 +4,7 @@ import Component from "vue-class-component";
 
 import { mapState } from "vuex";
 
-import SVGPathElement from "pathseg";
+import "path-data-polyfill";
 
 import ColorPicker from "@/core/components/colorpicker.vue";
 import Game from "@/game/game.vue";
@@ -118,58 +118,59 @@ export default class MenuBar extends Vue {
             for (const svgChild of doc.getElementsByTagNameNS("http://www.w3.org/2000/svg", "svg")) {
                 for (const pathChild of svgChild.getElementsByTagNameNS("http://www.w3.org/2000/svg", "path")) {
                     let currentLocation = new GlobalPoint(0, 0);
-                    const a = (<SVGPathElement>pathChild).pathSegList;
+                    const pathData = (<SVGPathElement>pathChild).getPathData();
+                    console.log(pathData);
                     const points: GlobalPoint[] = [];
-                    for (const seg of a) {
-                        switch (seg.pathSegType) {
-                            case 1: {
+                    for (const seg of pathData) {
+                        switch (seg.type) {
+                            case "Z": {
                                 //ClosePath
                                 currentLocation = points[0];
                                 break;
                             }
-                            case 2: {
+                            case "M": {
                                 //MoveToAbs
-                                currentLocation = new GlobalPoint(seg.x, seg.y);
+                                currentLocation = new GlobalPoint(seg.values[0], seg.values[1]);
                                 break;
                             }
-                            case 3: {
+                            case "m": {
                                 //MoveToRel
-                                currentLocation = currentLocation.add(new Vector(seg.x, seg.y));
+                                currentLocation = currentLocation.add(new Vector(seg.values[0], seg.values[1]));
                                 break;
                             }
-                            case 4: {
+                            case "L": {
                                 //LineToAbs
-                                currentLocation = new GlobalPoint(seg.x, seg.y);
+                                currentLocation = new GlobalPoint(seg.values[0], seg.values[1]);
                                 break;
                             }
-                            case 5: {
+                            case "l": {
                                 //LineToRel
-                                currentLocation = currentLocation.add(new Vector(seg.x, seg.y));
+                                currentLocation = currentLocation.add(new Vector(seg.values[0], seg.values[1]));
                                 break;
                             }
-                            case 12: {
+                            case "H": {
                                 //LineToHorizontalAbs
-                                currentLocation = new GlobalPoint(seg.x, currentLocation.y);
+                                currentLocation = new GlobalPoint(seg.values[0], currentLocation.y);
                                 break;
                             }
-                            case 13: {
+                            case "h": {
                                 // LineToHorizontalRel
-                                currentLocation = currentLocation.add(new Vector(seg.x, 0));
+                                currentLocation = currentLocation.add(new Vector(seg.values[0], 0));
                                 break;
                             }
-                            case 14: {
+                            case "V": {
                                 // LineToVerticalAbs
-                                currentLocation = new GlobalPoint(currentLocation.x, seg.y);
+                                currentLocation = new GlobalPoint(currentLocation.x, seg.values[0]);
                                 break;
                             }
-                            case 15: {
+                            case "v": {
                                 // LineToVerticalRel
-                                currentLocation = currentLocation.add(new Vector(0, seg.y));
+                                currentLocation = currentLocation.add(new Vector(0, seg.values[0]));
                                 break;
                             }
                             default: {
                                 //throw error;
-                                console.warn("Path contains unsupported segment: " + seg.pathSegType);
+                                console.warn("Path contains unsupported segment: " + seg.type);
                                 break;
                             }
                         }

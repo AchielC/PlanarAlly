@@ -183,6 +183,9 @@ export default class MenuBar extends Vue {
                     layer?.addShape(shape, SyncMode.FULL_SYNC, InvalidationMode.WITH_LIGHT);
                 }
             }
+            for (const imageChild of doc.getElementsByTagNameNS("http://www.w3.org/2000/svg", "image")) {
+                console.log(imageChild);
+            }
         };
         fr.readAsText(input.files[0]);
         if (layer === undefined) return;

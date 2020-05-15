@@ -90,7 +90,7 @@ export default class LocationBar extends Vue {
         if (toLocation === undefined || fromLocation === toLocation) return;
         const players = [];
         for (const player of gameStore.players) {
-            if (player.location === fromLocation) {
+            if (player.location === fromLocation && player.role !== 1) {
                 player.location = toLocation;
                 players.push(player.name);
             }
@@ -102,7 +102,7 @@ export default class LocationBar extends Vue {
         }
         // e.item.remove();
         // e.clone.remove();
-        // socket.emit("Location.Change", { location: toLocation, users: players });
+        socket.emit("Location.Change", { location: toLocation, users: players });
     }
 
     endPlayerDrag(e: { item: HTMLDivElement; from: HTMLDivElement; to: HTMLDivElement }): void {

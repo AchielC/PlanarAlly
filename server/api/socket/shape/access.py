@@ -4,6 +4,7 @@ import auth
 from api.socket.initiative import send_client_initiatives
 from app import app, logger, sio
 from models import Floor, Layer, Location, PlayerRoom, Room, Shape, ShapeOwner, User
+from models.role import Role
 from models.shape.access import has_ownership
 from state.game import game_state
 
@@ -54,7 +55,9 @@ async def add_shape_owner(sid: int, data: Dict[str, Any]):
         namespace="/planarally",
     )
     if not (shape.default_vision_access or shape.default_edit_access):
-        for sid in game_state.get_sids(player=target_user, room=pr.room):
+        for sid in game_state.get_sids(
+            player=target_user, active_location=pr.active_location
+        ):
             await sio.emit(
                 "Shape.Set",
                 shape.as_dict(target_user, False),
@@ -76,7 +79,7 @@ async def update_shape_owner(sid: int, data: Dict[str, Any]):
         )
         raise exc
 
-    if not ShapeOwner.get_or_none(shape=shape, user=pr.player):
+    if not has_ownership(shape, pr):
         logger.warning(
             f"{pr.player.name} attempted to change asset ownership of a shape it does not own"
         )
@@ -191,7 +194,7 @@ async def update_default_shape_owner(sid: int, data: Dict[str, Any]):
     )
 
     if shape.default_vision_access or shape.default_edit_access:
-        for sid, player in game_state.get_users(room=pr.room):
+        for sid, player in game_state.get_users(active_location=pr.active_location):
             await sio.emit(
                 "Shape.Set",
                 shape.as_dict(player, player.name == pr.room.creator),

@@ -44,7 +44,7 @@ socket.on(
         invitationCode: string;
         isLocked: boolean;
         default_options: ServerLocationOptions;
-        players: { id: number; name: string; location: number }[];
+        players: { id: number; name: string; location: number; role: number }[];
     }) => {
         gameStore.setRoomName(data.name);
         gameStore.setRoomCreator(data.creator);
@@ -59,7 +59,7 @@ socket.on("Room.Info.InvitationCode.Set", (invitationCode: string) => {
     gameStore.setInvitationCode(invitationCode);
     EventBus.$emit("DmSettings.RefreshedInviteCode");
 });
-socket.on("Room.Info.Players.Add", (data: { id: number; name: string; location: number }) => {
+socket.on("Room.Info.Players.Add", (data: { id: number; name: string; location: number; role: number }) => {
     gameStore.addPlayer(data);
 });
 socket.on("Username.Set", (username: string) => {
@@ -75,7 +75,10 @@ socket.on("Client.Options.Set", (options: ServerClient) => {
     gameStore.setPanY(options.pan_y);
     gameStore.setZoomDisplay(zoomDisplay(options.zoom_factor));
     // gameStore.setZoomDisplay(0.5);
-    if (options.active_layer) layerManager.selectLayer(options.active_layer, false);
+    if (options.active_layer && options.active_floor) {
+        gameStore.selectFloor(options.active_floor);
+        layerManager.selectLayer(options.active_layer, false);
+    }
     for (const floor of layerManager.floors) {
         if (layerManager.getGridLayer(floor.name) !== undefined) layerManager.getGridLayer(floor.name)!.invalidate();
     }
@@ -145,6 +148,7 @@ socket.on("Shape.Floor.Change", (data: { uuid: string; floor: string }) => {
     const shape = layerManager.UUIDMap.get(data.uuid);
     if (shape === undefined) return;
     shape.moveFloor(data.floor, false);
+    if (shape.ownedBy({ editAccess: true })) gameStore.selectFloor(data.floor);
 });
 socket.on("Shape.Layer.Change", (data: { uuid: string; layer: string }) => {
     const shape = layerManager.UUIDMap.get(data.uuid);

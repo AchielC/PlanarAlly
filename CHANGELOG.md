@@ -7,6 +7,24 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Changed
+
+-   During shape drag/move use a smaller version to do hitbox tests
+    -   This improves behaviour when going through a very tight hallway or a door
+
+### Fixed
+
+-   Polygon server creation with initial vertices list breaks session
+
+## [0.20.1] - 2020-05-11
+
+### Fixed
+
+-   Schema differences between new saves and older saves
+-   Location removal failing on the server
+
+## [0.20.0] - 2020-05-11
+
 ### Added
 
 -   configuration option to specify allowed CORS origins
@@ -21,6 +39,8 @@ All notable changes to this project will be documented in this file.
 -   Progressbar to the asset manager
 -   Location rename
 -   Location removal
+-   Upon floor change all players with edit access will auto move to the same floor
+-   Set any shape as marker and jump to that position from the sidebar [LDeeJay1969]
 
 ### Changed
 
@@ -35,8 +55,6 @@ All notable changes to this project will be documented in this file.
     -   The center of the drawn resize rectangle now will remain in the exact same place after resize. This prevents sudden map jump.
 -   Shape resizing
     -   Now only snaps the point you're resizing instead of an awkward complete shape resize
--   Drawing
-    -   When snapping enabled will now snap startpoint on mouse down and last point on mouse up
 -   Location bar reworked
     -   Move around as a DM without bringing your players along
     -   shows which players are in which location
@@ -49,7 +67,6 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 -   Polygon width now properly taken into account when trying to select it
--   Set any shape as marker and jump to that position from the sidebar [LDeeJay1969]
 -   Floor/Layer bar now moves along with the side menu when opened
 -   Side menu and locations menu no longer overlap
 -   Window resizing messing with the lighting borders
@@ -59,6 +76,8 @@ All notable changes to this project will be documented in this file.
 -   Grid layers of al lower floors being visible
 -   DM being able to invite themselves to the room as a player
 -   Removing a file in the asset manager now deletes the file on the server
+-   Draw tool no longer delays rendering brush helper after layer/floor change
+-   Active floor is remembered upon rejoining the session
 
 ## [0.19.3] - 2020-04-01
 

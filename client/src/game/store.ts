@@ -48,7 +48,7 @@ class GameStore extends VuexModule implements GameState {
     roomName = "";
     roomCreator = "";
     invitationCode = "";
-    players: { id: number; name: string; location: number }[] = [];
+    players: { id: number; name: string; location: number; role: number }[] = [];
 
     gridColour = "rgba(0, 0, 0, 1)";
     fowColour = "rgba(0, 0, 0, 1)";
@@ -82,6 +82,10 @@ class GameStore extends VuexModule implements GameState {
 
     get selectedLayer(): string {
         return this.layers[this.selectedLayerIndex];
+    }
+
+    get selectedFloor(): string {
+        return this.floors[this.selectedFloorIndex];
     }
 
     get zoomFactor(): number {
@@ -288,6 +292,12 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
+    removeLocation(id: number): void {
+        const idx = this.locations.findIndex(l => l.id === id);
+        if (idx >= 0) this.locations.splice(idx, 1);
+    }
+
+    @Mutation
     resetLayerInfo(): void {
         this.floors = [];
         this.selectedFloorIndex = -1;
@@ -405,13 +415,22 @@ class GameStore extends VuexModule implements GameState {
     }
 
     @Mutation
-    setPlayers(players: { id: number; name: string; location: number }[]): void {
+    setPlayers(players: { id: number; name: string; location: number; role: number }[]): void {
         this.players = players;
     }
 
     @Mutation
-    addPlayer(player: { id: number; name: string; location: number }): void {
+    addPlayer(player: { id: number; name: string; location: number; role: number }): void {
         this.players.push(player);
+    }
+
+    @Mutation
+    updatePlayer(data: { player: string; location: number }): void {
+        for (const player of this.players) {
+            if (player.name === data.player) {
+                player.location = data.location;
+            }
+        }
     }
 
     @Mutation

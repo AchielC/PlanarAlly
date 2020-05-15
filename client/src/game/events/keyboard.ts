@@ -47,7 +47,7 @@ export function onKeyDown(event: KeyboardEvent): void {
                     // First check for collisions.  Using the smooth wall slide collision check used on mouse move is overkill here.
                     for (const sel of selection) {
                         if (gameStore.selectionHelperID === sel.uuid) continue;
-                        delta = calculateDelta(delta, sel);
+                        delta = calculateDelta(delta, sel, true);
                     }
                 }
                 if (delta.length() === 0) return;
@@ -129,7 +129,7 @@ export function onKeyDown(event: KeyboardEvent): void {
                     shape.moveFloor(newFloor, true);
                 }
             }
-            if (!event.shiftKey) layerManager.clearSelection();
+            layerManager.clearSelection();
             if (!event.ctrlKey || event.shiftKey) {
                 gameStore.selectFloor(gameStore.selectedFloorIndex + 1);
             }

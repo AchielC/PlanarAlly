@@ -205,7 +205,7 @@ class Floor(BaseModel):
 
 
 class Layer(BaseModel):
-    floor = ForeignKeyField(Floor, backref="layers")
+    floor = ForeignKeyField(Floor, backref="layers", on_delete="CASCADE")
     name = TextField()
     type_ = TextField()
     # TYPE = IntegerField()  # normal/grid/dm/lighting ???????????
@@ -261,6 +261,7 @@ class LocationUserOption(BaseModel):
         )
         if self.active_layer:
             d["active_layer"] = self.active_layer.name
+            d["active_floor"] = self.active_layer.floor.name
         return d
 
     class Meta:

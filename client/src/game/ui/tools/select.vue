@@ -68,7 +68,7 @@ export default class SelectTool extends Tool {
         }
 
         if (!this.selectionHelper.hasOwner(gameStore.username)) {
-            this.selectionHelper.addOwner({ user: gameStore.username, editAccess: false, visionAccess: false }, false);
+            this.selectionHelper.addOwner({ user: gameStore.username, editAccess: true, visionAccess: true }, false);
         }
 
         let hit = false;
@@ -170,7 +170,7 @@ export default class SelectTool extends Tool {
                     for (const sel of layer.selection) {
                         if (!sel.ownedBy({ editAccess: true })) continue;
                         if (sel.uuid === this.selectionHelper.uuid) continue; // the selection helper should not be treated as a real shape.
-                        delta = calculateDelta(delta, sel);
+                        delta = calculateDelta(delta, sel, true);
                         if (delta !== ogDelta) this.deltaChanged = true;
                     }
                 }
